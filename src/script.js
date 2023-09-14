@@ -22,11 +22,22 @@ const scene = new THREE.Scene()
 /**
  * OBJECT
  */
-const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({color: 0xaaaaaa})
-)
-scene.add(cube)
+
+//Set up multiple objects to scene
+function createWall(width, height) {
+    for( let x = -width/2; x <= width/2; x ++) {
+        for (let y = -height/2; y <= height/2; y ++) {
+            const cube = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 1, 1),
+                new THREE.MeshStandardMaterial({ color: 0xaaaaaa })
+            )
+            cube.position.set(1.05*x, 1.05*y, 0)   
+            cube.userData = { x, y }
+            scene.add(cube)
+        }
+    } 
+}     
+
 
 /**
  * SIZES
@@ -64,10 +75,8 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.1))
  * CAMERA
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 4
-camera.position.y = 2
-camera.position.z = 4
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
+camera.position.z = 10
 scene.add(camera)
 
 // Controls
@@ -111,9 +120,9 @@ const tick = () =>
 
 const raycaster = new THREE.Raycaster()
 document.addEventListener('mousedown', (event) => {
-    const coords = {  // mouse position in normalized device coordinates
-        x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1, // put x in range [-1, 1]
-        y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1 //same for y
+    const coords = { 
+        x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1, 
+        y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1 
     }
     raycaster.setFromCamera(coords, camera) 
     
@@ -121,8 +130,11 @@ document.addEventListener('mousedown', (event) => {
 
     if (intersections.length > 0) {
         const selectedObject = intersections[0].object 
-        console.log(intersections[0])
         selectedObject.material.color.set(0xff0000)
+        const coords = selectedObject.userData
+        console.log(`cube at ${coords.x}, ${coords.y} was clicked`)
     }
 })
+
+createWall(10, 10)
 tick()
