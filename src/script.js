@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 /**
- * Base
+ * BASE
  */
 // Debug
 const gui = new dat.GUI({
@@ -18,32 +18,18 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
-/**
- * Loaders
- */
-// Texture loader
-const textureLoader = new THREE.TextureLoader()
-
-// Draco loader
-const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath('draco/')
-
-// GLTF loader
-const gltfLoader = new GLTFLoader()
-gltfLoader.setDRACOLoader(dracoLoader)
 
 /**
- * Object
+ * OBJECT
  */
 const cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial()
+    new THREE.MeshStandardMaterial({color: 0xaaaaaa})
 )
-
 scene.add(cube)
 
 /**
- * Sizes
+ * SIZES
  */
 const sizes = {
     width: window.innerWidth,
@@ -66,7 +52,16 @@ window.addEventListener('resize', () =>
 })
 
 /**
- * Camera
+ * LIGHTS
+ */
+
+const whiteLight = new THREE.DirectionalLight(0xffffff)
+whiteLight.position.set(0, 0, 1)
+scene.add(whiteLight)
+scene.add(new THREE.AmbientLight(0xffffff, 0.1))
+
+/**
+ * CAMERA
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
@@ -80,17 +75,19 @@ const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 
 /**
- * Renderer
+ * RENDERER
  */
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true
 })
+renderer.setClearColor(0x222230)
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+document.body.appendChild(renderer.domElement)
 
 /**
- * Animate
+ * ANIMATE
  */
 const clock = new THREE.Clock()
 
@@ -108,4 +105,24 @@ const tick = () =>
     window.requestAnimationFrame(tick)
 }
 
+/**
+ * RAYCASTING
+ */
+
+const raycaster = new THREE.Raycaster()
+document.addEventListener('mousedown', (event) => {
+    const coords = {  // mouse position in normalized device coordinates
+        x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1, // put x in range [-1, 1]
+        y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1 //same for y
+    }
+    raycaster.setFromCamera(coords, camera) 
+    
+    let intersections = raycaster.intersectObjects(scene.children) 
+
+    if (intersections.length > 0) {
+        const selectedObject = intersections[0].object 
+        console.log(intersections[0])
+        selectedObject.material.color.set(0xff0000)
+    }
+})
 tick()
